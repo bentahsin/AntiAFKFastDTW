@@ -1,4 +1,4 @@
-name: Auto Publish Release & Package
+name: Simple Build & Release
 
 on:
   push:
@@ -6,40 +6,37 @@ on:
       - 'v*'
 
 jobs:
-  publish:
+  build-and-release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: write
 
     steps:
-      - name: Checkout Code
+      - name: Kodu Çek (Checkout)
         uses: actions/checkout@v4
 
-      - name: Set up JDK 1.8
+      - name: Java 8 Kurulumu
         uses: actions/setup-java@v4
         with:
           java-version: '8'
           distribution: 'temurin'
-          server-id: github
-          settings-path: ${{ github.workspace }}
+          cache: 'maven'
 
-      - name: Sync pom.xml version with Tag
+      - name: Versiyonu Tag ile Eşitle
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          echo "Tag version detected: $VERSION"
+          echo "Building version: $VERSION"
           mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
 
-      - name: Build and Deploy to GitHub Packages
-        run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml -DskipTests
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Projeyi Derle (Build)
+        run: mvn -B clean package -DskipTests
 
-      - name: Create GitHub Release & Upload JAR
+      - name: GitHub Release Oluştur ve JAR Yükle
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: target/*.jar
           generate_release_notes: true
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
