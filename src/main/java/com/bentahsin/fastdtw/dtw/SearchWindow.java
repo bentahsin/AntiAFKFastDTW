@@ -23,6 +23,7 @@ public abstract class SearchWindow {
 
    public final int minJforI(int i) { return minValues[i]; }
    public final int maxJforI(int i) { return maxValues[i]; }
+
    public final int size() { return size; }
 
    protected final void expandWindow(int radius) {
@@ -43,9 +44,16 @@ public abstract class SearchWindow {
       if (minValues[col] == -1) {
          minValues[col] = row;
          maxValues[col] = row;
+         size++;
       } else {
-         if (row < minValues[col]) minValues[col] = row;
-         if (row > maxValues[col]) maxValues[col] = row;
+         if (row < minValues[col]) {
+            size += (minValues[col] - row);
+            minValues[col] = row;
+         }
+         if (row > maxValues[col]) {
+            size += (row - maxValues[col]);
+            maxValues[col] = row;
+         }
       }
    }
 
